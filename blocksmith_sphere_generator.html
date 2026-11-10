@@ -1,0 +1,623 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blocksmith — Sphere Generator</title>
+<style>
+:root{
+  --bg:#101614;--panel:#1b2420;--panel2:#222d28;--line:#2e3b35;--line2:#3b4a43;
+  --text:#dce5d9;--muted:#9aa89b;--dim:#6f7f74;--green:#7bc24f;--green2:#9ed46b;--gold:#e3b45a;
+  --mono:"Cascadia Mono","SF Mono",Consolas,"Liberation Mono",Menlo,monospace;
+  --sans:"Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans)}
+body{min-height:100vh;background:radial-gradient(1200px 500px at 20% -10%, rgba(123,194,79,.06), transparent 60%),var(--bg)}
+button,input,select{font-family:inherit}
+
+.top{border-bottom:1px solid var(--line);background:rgba(16,22,20,.9);position:sticky;top:0;z-index:10;backdrop-filter:blur(6px)}
+.top-in{max-width:1244px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.brand{display:flex;align-items:center;gap:14px}
+.logo{width:34px;height:34px;background:var(--green);border:2px solid var(--green2);display:grid;place-items:center;box-shadow:inset 0 0 0 3px #3d6a2a}
+.logo i{display:block;width:14px;height:14px;background:linear-gradient(90deg,transparent 4px,#1b2a17 4px,#1b2a17 6px,transparent 6px,transparent 8px,#1b2a17 8px,#1b2a17 10px,transparent 10px),#2f5420}
+.brand b{display:block;font-family:var(--mono);font-size:13px;letter-spacing:.14em;color:#eaf1e6}
+.brand span{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--dim);margin-top:2px}
+.top-r{font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--muted)}
+
+.wrap{max-width:1244px;margin:0 auto;padding:36px 24px 56px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--green2);font-weight:700}
+h1{font-size:46px;line-height:1.1;margin:18px 0 14px;font-weight:700;letter-spacing:-.02em;color:#f2f6ef}
+h1 em{color:var(--green);font-style:normal}
+.lead{max-width:740px;color:var(--muted);font-size:15px;line-height:1.6;margin:0 0 30px}
+
+.grid{display:grid;grid-template-columns:290px 1fr;gap:18px;align-items:start}
+@media(max-width:900px){.grid{grid-template-columns:1fr}h1{font-size:36px}}
+
+.card{background:var(--panel);border:1px solid var(--line)}
+.card-h{padding:18px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line)}
+.card-h .t{font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.1em;display:flex;gap:12px;align-items:center;color:#e8efe4}
+.card-h .t u{text-decoration:none;color:var(--green2)}
+.card-h .meta{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--dim)}
+
+.settings{padding:20px}
+.settings .sh{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--green2);font-weight:700;margin-bottom:20px}
+.field{margin-bottom:20px}
+.field .lab{display:flex;justify-content:space-between;font-size:12.5px;font-weight:600;color:#e5ece1;margin-bottom:10px}
+.field .lab b{font-family:var(--mono);font-size:11px;color:var(--gold);font-weight:600;letter-spacing:.04em}
+input[type=number],select{width:100%;background:#131b18;border:1px solid var(--line2);color:var(--text);padding:12px;font-family:var(--mono);font-size:14px;outline:none;border-radius:0}
+input[type=number]:focus,select:focus{border-color:var(--green)}
+select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 18px) 50%,calc(100% - 12px) 50%;background-size:6px 6px;background-repeat:no-repeat;cursor:pointer}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:18px;background:transparent;margin:0;cursor:pointer;--p:50%}
+input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:6px;border:1px solid var(--line2);background:linear-gradient(90deg,var(--green) 0,var(--green) var(--p),#2a3631 var(--p),#2a3631 100%)}
+input[type=range]::-moz-range-track{height:6px;border-radius:6px;border:1px solid var(--line2);background:linear-gradient(90deg,var(--green) 0,var(--green) var(--p),#2a3631 var(--p),#2a3631 100%)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--green2);border:2px solid #2c4d1d;margin-top:-6px}
+input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:var(--green2);border:2px solid #2c4d1d}
+
+.check{display:flex;align-items:center;gap:12px;font-size:12.5px;color:#e0e8dc;margin:0 0 14px;cursor:pointer;user-select:none}
+.check input{appearance:none;-webkit-appearance:none;width:15px;height:15px;border:1px solid var(--line2);background:#131b18;display:grid;place-items:center;cursor:pointer;margin:0}
+.check input:checked{background:var(--green);border-color:var(--green2)}
+.check input:checked::after{content:"";width:8px;height:4px;border-left:2px solid #142010;border-bottom:2px solid #142010;transform:rotate(-45deg) translate(1px,-1px)}
+
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:14px 12px;border:1px solid var(--line2);background:var(--panel2);color:#e7eee3;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.1em;cursor:pointer;text-transform:uppercase;transition:.12s}
+.btn:hover{border-color:var(--green);background:#2a3832}
+.btn.primary{background:var(--green);border-color:var(--green2);color:#10200a}
+.btn.primary:hover{background:var(--green2)}
+.btns{display:grid;gap:10px;margin-top:6px}
+.note{margin-top:20px;border-left:3px solid var(--gold);background:#27281f;padding:12px 14px;font-size:11.5px;line-height:1.55;color:#c9cdb8}
+.note b{font-family:var(--mono);letter-spacing:.08em;font-weight:600;color:#e4dfc0}
+
+.tabs{display:flex;gap:8px;padding:16px;border-bottom:1px solid var(--line)}
+.tab{padding:11px 16px;border:1px solid var(--line2);background:#1a2420;color:var(--muted);font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.1em;cursor:pointer}
+.tab.on{background:#3d5a39;border-color:#5e8a55;color:#eef6ea}
+.tab:hover:not(.on){border-color:var(--green)}
+
+.stage-wrap{padding:16px;background:radial-gradient(circle,#2a3631 1px,transparent 1.5px) 0 0/16px 16px,var(--panel)}
+.stage{position:relative;background:#1c2722;border:1px solid #27342e;margin:0 auto;max-width:720px}
+.stage .st{display:flex;justify-content:space-between;padding:14px 16px;font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--muted);position:absolute;left:0;right:0;top:0;z-index:2;pointer-events:none}
+.stage .st b{color:var(--gold);font-weight:600}
+canvas{display:block;width:100%}
+#cv3{height:460px;cursor:grab;touch-action:none}
+#cv3.drag{cursor:grabbing}
+
+.ctrl{border-top:1px solid var(--line);padding:18px 18px 20px}
+.ctrl .hint{font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--muted);margin-bottom:14px}
+.ctrl .hint b{color:#e0e8dc;font-weight:600}
+.row-btns{display:flex;gap:8px;flex-wrap:wrap}
+.sbtn{padding:11px 14px;border:1px solid var(--line2);background:var(--panel2);color:#e7eee3;font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.1em;cursor:pointer;text-transform:uppercase}
+.sbtn:hover{border-color:var(--green);background:#2a3832}
+.sbtn.on{background:#3d5a39;border-color:#5e8a55;color:#eef6ea}
+.sep{width:1px;background:var(--line2);margin:0 4px}
+
+.layer{border-top:1px solid var(--line);padding:20px 18px}
+.layer-top{display:flex;align-items:center;gap:18px}
+.layer-top .l{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--muted)}
+.layer-top .c{font-family:var(--mono);font-size:12px;color:var(--gold);min-width:56px;text-align:right}
+.layer-top input{flex:1}
+.layer .row-btns{margin-top:16px}
+.layer .info{margin-top:14px;font-size:12px;color:var(--muted);line-height:1.6}
+
+.stats{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line)}
+.stat{padding:16px 18px;border-right:1px solid var(--line)}
+.stat:last-child{border-right:0}
+.stat .k{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--muted);margin-bottom:10px}
+.stat .v{font-family:var(--mono);font-size:26px;font-weight:700;color:var(--green2)}
+.foot{border-top:1px solid var(--line);padding:14px 18px;display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--dim)}
+.foot span:last-child{color:var(--muted)}
+.credit{color:var(--green2);text-decoration:none;font-weight:700}
+.credit:hover{text-decoration:underline}
+
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:#2b3d27;border:1px solid var(--green);color:#e8f3e2;padding:11px 18px;font-family:var(--mono);font-size:11px;letter-spacing:.08em;opacity:0;pointer-events:none;transition:.2s;z-index:50}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in">
+    <div class="brand">
+      <div class="logo"><i></i></div>
+      <div><b>BLOCKSMITH</b><span>BUILD PLANNER / TOOL 02</span></div>
+    </div>
+    <div class="top-r">MINECRAFT · BLUEPRINT TOOLS</div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="eyebrow">✦ THE BUILDER'S WORKBENCH</div>
+  <h1>Sphere Generator<em>.</em></h1>
+  <p class="lead">Build a Minecraft sphere one horizontal layer at a time. Inspect every circular slice, orbit the 3D block model, and export a blueprint you can follow in-game.</p>
+
+  <div class="grid">
+    <aside class="card settings">
+      <div class="sh">01 / Sphere settings</div>
+
+      <div class="field">
+        <div class="lab"><span>Diameter</span><b id="dLab">7 blocks</b></div>
+        <input type="range" id="dRange" min="3" max="41" value="7">
+      </div>
+
+      <div class="field">
+        <div class="lab"><span>Exact size</span></div>
+        <input type="number" id="dNum" min="3" max="41" value="7">
+      </div>
+
+      <div class="field">
+        <div class="lab"><span>Style</span></div>
+        <select id="mode">
+          <option value="solid">Solid sphere</option>
+          <option value="hollow">Hollow shell</option>
+        </select>
+      </div>
+
+      <div class="field hidden" id="thickField">
+        <div class="lab"><span>Shell thickness</span><b id="tLab">1 block</b></div>
+        <input type="range" id="tRange" min="1" max="6" value="1">
+      </div>
+
+      <div class="field">
+        <div class="lab"><span>Block display size</span><b id="pLab">15 px</b></div>
+        <input type="range" id="pRange" min="4" max="40" value="15">
+      </div>
+
+      <label class="check"><input type="checkbox" id="optGrid" checked> Show block grid</label>
+      <label class="check"><input type="checkbox" id="optEmpty"> Show empty layer grid</label>
+      <label class="check"><input type="checkbox" id="optAll" checked> Show all layers in 3D</label>
+
+      <div class="btns">
+        <button class="btn primary" id="bPng">▦ Export all layers (PNG sheet)</button>
+        <button class="btn" id="bCopy">▤ Copy full layer plan</button>
+        <button class="btn" id="bReset">↺ Reset settings</button>
+      </div>
+
+      <div class="note"><b>SPHERE MATH</b> · Every layer is a horizontal circle. The middle layer is widest; layers get smaller toward the top and bottom.</div>
+    </aside>
+
+    <section class="card">
+      <div class="card-h">
+        <div class="t"><u>▦</u> Sphere blueprint</div>
+        <div class="meta" id="dims">7 × 7 × 7 BLOCKS</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab on" id="tab3d">◆ 3D VIEW</button>
+        <button class="tab" id="tabL">▦ LAYER VIEW</button>
+        <button class="tab" id="tabS">◈ LAYER 3D</button>
+      </div>
+
+      <div class="stage-wrap">
+        <div class="stage" id="stage3d">
+          <div class="st"><span>FULL SPHERE</span><b id="st3">0 BLOCKS</b></div>
+          <canvas id="cv3"></canvas>
+        </div>
+        <div class="stage hidden" id="stageL">
+          <div class="st"><span id="stLl">LAYER 1</span><b id="stLr">0 BLOCKS</b></div>
+          <canvas id="cvL"></canvas>
+        </div>
+        <div class="stage hidden" id="stageS">
+          <div class="st"><span id="stSl">LAYER 1</span><b id="stSr">0 BLOCKS</b></div>
+          <canvas id="cvS" style="height:460px;cursor:grab;touch-action:none"></canvas>
+        </div>
+      </div>
+
+      <div class="ctrl" id="ctrl3d">
+        <div class="hint"><b>DRAG TO ROTATE</b> · Scroll or use buttons to zoom · Current layer is highlighted in gold</div>
+        <div class="row-btns">
+          <button class="sbtn" id="rotL">↶ Rotate</button>
+          <button class="sbtn" id="rotR">Rotate ↷</button>
+          <button class="sbtn" id="zOut">− Zoom</button>
+          <button class="sbtn" id="zIn">+ Zoom</button>
+          <button class="sbtn" id="vReset">Reset view</button>
+        </div>
+      </div>
+      <div class="ctrl hidden" id="ctrlL">
+        <div class="hint"><b>TOP-DOWN SLICE</b> · Green = blocks in this layer · Faint blocks = layer below (for alignment)</div>
+      </div>
+
+      <div class="ctrl hidden" id="ctrlS">
+        <div class="hint"><b>LAYER 3D</b> · Drag to rotate · Slide the layer below to move through the sphere · Choose what happens to the other layers</div>
+        <div class="row-btns">
+          <button class="sbtn on" data-oth="faded">◐ Others faded</button>
+          <button class="sbtn" data-oth="hidden">○ Others hidden</button>
+          <button class="sbtn" data-oth="below">◑ Below only (faded)</button>
+          <span class="sep"></span>
+          <button class="sbtn" id="sRotL">↶ Rotate</button>
+          <button class="sbtn" id="sRotR">Rotate ↷</button>
+          <button class="sbtn" id="sZOut">− Zoom</button>
+          <button class="sbtn" id="sZIn">+ Zoom</button>
+          <button class="sbtn" id="sReset">Reset view</button>
+        </div>
+      </div>
+
+      <div class="layer">
+        <div class="layer-top">
+          <span class="l">LAYER</span>
+          <input type="range" id="rRange" min="1" max="7" value="4">
+          <span class="c" id="rCount">4 / 7</span>
+        </div>
+        <div class="row-btns">
+          <button class="sbtn" id="rPrev">← Previous</button>
+          <button class="sbtn" id="rNext">Next →</button>
+          <button class="sbtn" id="rMid">Go to middle</button>
+        </div>
+        <div class="info" id="rInfo">Layer 4 · 0 blocks to place</div>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><div class="k">TOTAL SPHERE BLOCKS</div><div class="v" id="sTotal">0</div></div>
+        <div class="stat"><div class="k">BLOCKS IN THIS LAYER</div><div class="v" id="sLayer">0</div></div>
+        <div class="stat"><div class="k">LAYERS</div><div class="v" id="sLayers">0</div></div>
+      </div>
+      <div class="foot"><span>VOXEL SPHERE · 1 CUBE = 1 BLOCK</span><span>BLOCKSMITH / BLUEPRINT 002 · CREATED BY <a class="credit" href="https://www.youtube.com/@adityabhaee" target="_blank" rel="noopener">@ADITYABHAEE</a></span></div>
+    </section>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+  const DEF = { d:7, mode:'solid', thick:1, px:15, grid:true, empty:false, all:true,
+                layer:3, view:'3d', yaw:-35*Math.PI/180, pitch:30*Math.PI/180, zoom:1 };
+  const S = Object.assign({}, DEF);
+
+  let vox = null;        // Uint8Array, idx=(y*d+z)*d+x
+  let layerCounts = [];
+  let items = [];
+  let total = 0;
+  const ix = (x,y,z) => (y*S.d+z)*S.d+x;
+
+  /* ---------- geometry ---------- */
+  function buildSphere(){
+    const d = S.d, c = (d-1)/2, r = d/2, r2 = r*r + 1e-9;
+    let g = new Uint8Array(d*d*d);
+    for(let y=0; y<d; y++) for(let z=0; z<d; z++) for(let x=0; x<d; x++){
+      const dx=x-c, dy=y-c, dz=z-c;
+      if(dx*dx+dy*dy+dz*dz <= r2) g[ix(x,y,z)] = 1;
+    }
+    if(S.mode === 'hollow'){
+      // erode `thick` times; shell = original minus eroded core
+      let core = g;
+      for(let t=0; t<S.thick; t++){
+        const next = new Uint8Array(d*d*d);
+        for(let y=0; y<d; y++) for(let z=0; z<d; z++) for(let x=0; x<d; x++){
+          if(!core[ix(x,y,z)]) continue;
+          const on = (a,b,e) => a>=0&&b>=0&&e>=0&&a<d&&b<d&&e<d && core[ix(a,b,e)];
+          if(on(x-1,y,z)&&on(x+1,y,z)&&on(x,y-1,z)&&on(x,y+1,z)&&on(x,y,z-1)&&on(x,y,z+1)) next[ix(x,y,z)] = 1;
+        }
+        core = next;
+      }
+      for(let i=0; i<g.length; i++) if(core[i]) g[i] = 0;
+    }
+    vox = g;
+    layerCounts = [];
+    total = 0;
+    for(let y=0; y<d; y++){
+      let n = 0;
+      for(let z=0; z<d; z++) for(let x=0; x<d; x++) n += g[ix(x,y,z)];
+      layerCounts.push(n); total += n;
+    }
+    // 3D voxels with exposure masks (bit 1 = top, 2 = left, 4 = right, 8 = back, 16 = front)
+    const has = (x,y,z) => !(x<0||y<0||z<0||x>=d||y>=d||z>=d) && g[ix(x,y,z)];
+    items = [];
+    for(let y=0; y<d; y++) for(let z=0; z<d; z++) for(let x=0; x<d; x++){
+      if(!g[ix(x,y,z)]) continue;
+      let m = 0;
+      if(!has(x,y+1,z)) m |= 1;
+      if(!has(x-1,y,z)) m |= 2;
+      if(!has(x+1,y,z)) m |= 4;
+      if(!has(x,y,z-1)) m |= 8;
+      if(!has(x,y,z+1)) m |= 16;
+      items.push({ x:x-c, y:y-c, z:z-c, layer:y, m });
+    }
+  }
+
+  /* ---------- colours ---------- */
+  const GREEN = { top:[158,212,107], side:[106,168,63] };
+  const GOLD  = { top:[240,196,106], side:[205,150,58] };
+  const shade = (c,k) => `rgb(${Math.round(c[0]*k)},${Math.round(c[1]*k)},${Math.round(c[2]*k)})`;
+
+  /* ---------- canvas ---------- */
+  const cv3 = $('cv3'), cvL = $('cvL');
+  function fit(cv, cssH){
+    const w = cv.clientWidth || 600, D = window.devicePixelRatio || 1, h = cssH || cv.clientHeight;
+    if(cv.width !== Math.round(w*D) || cv.height !== Math.round(h*D)){ cv.width = Math.round(w*D); cv.height = Math.round(h*D); }
+    const ctx = cv.getContext('2d'); ctx.setTransform(D,0,0,D,0,0);
+    return { ctx, w, h };
+  }
+
+  const FACES = [
+    { bit:1,  n:[0,1,0],  v:[[-.5,.5,-.5],[.5,.5,-.5],[.5,.5,.5],[-.5,.5,.5]], top:true },
+    { bit:2,  n:[-1,0,0], v:[[-.5,.5,-.5],[-.5,.5,.5],[-.5,-.5,.5],[-.5,-.5,-.5]] },
+    { bit:4,  n:[1,0,0],  v:[[.5,.5,.5],[.5,.5,-.5],[.5,-.5,-.5],[.5,-.5,.5]] },
+    { bit:8,  n:[0,0,-1], v:[[.5,.5,-.5],[-.5,.5,-.5],[-.5,-.5,-.5],[.5,-.5,-.5]] },
+    { bit:16, n:[0,0,1],  v:[[-.5,.5,.5],[.5,.5,.5],[.5,-.5,.5],[-.5,-.5,.5]] }
+  ];
+  let raf = 0;
+  const schedule = () => { if(!raf) raf = requestAnimationFrame(()=>{ raf=0; render(); }); };
+
+  function render3D(){
+    const { ctx, w, h } = fit(cv3, 460);
+    ctx.clearRect(0,0,w,h);
+    const cyw=Math.cos(S.yaw), syw=Math.sin(S.yaw), cp=Math.cos(S.pitch), sp=Math.sin(S.pitch);
+    const rot = (x,y,z) => { const x1=x*cyw+z*syw, z1=-x*syw+z*cyw; return [x1, y*cp-z1*sp, y*sp+z1*cp]; };
+    const sc = S.px*S.zoom, ox = w/2, oy = h/2;
+    const fInfo = FACES.map(f => { const r = rot(f.n[0],f.n[1],f.n[2]); return { vis:r[2]>0.001, k:f.top?1:0.55+0.4*Math.max(0,r[2]) }; });
+
+    const list = [];
+    for(const it of items){
+      if(!S.all && it.layer > S.layer) continue;
+      const cut = !S.all && it.layer === S.layer;     // layer cut-away exposes its top
+      if(!it.m && !cut) continue;
+      list.push({ it, cut, d: rot(it.x,it.y,it.z)[2] });
+    }
+    list.sort((a,b) => a.d - b.d);
+
+    ctx.lineJoin = 'round';
+    for(const o of list){
+      const it = o.it, pal = it.layer === S.layer ? GOLD : GREEN;
+      const m = o.cut ? (it.m | 1) : it.m;
+      for(let fi=0; fi<5; fi++){
+        const f = FACES[fi];
+        if(!(m & f.bit) || !fInfo[fi].vis) continue;
+        ctx.beginPath();
+        for(let i=0; i<4; i++){
+          const r = rot(it.x+f.v[i][0], it.y+f.v[i][1], it.z+f.v[i][2]);
+          const px = ox + r[0]*sc, py = oy - r[1]*sc;
+          i ? ctx.lineTo(px,py) : ctx.moveTo(px,py);
+        }
+        ctx.closePath();
+        const col = shade(f.top ? pal.top : pal.side, fInfo[fi].k);
+        ctx.fillStyle = col; ctx.fill();
+        if(S.grid){ ctx.strokeStyle = 'rgba(10,18,10,.38)'; ctx.lineWidth = 1; } else { ctx.strokeStyle = col; ctx.lineWidth = .6; }
+        ctx.stroke();
+      }
+    }
+  }
+
+  function renderLayer(){
+    const w = cvL.clientWidth || 600, d = S.d;
+    const cell = clamp(Math.floor((w-70)/d), 5, 30), size = cell*d, h = size + 64;
+    const { ctx } = fit(cvL, h);
+    cvL.style.height = h + 'px';
+    ctx.clearRect(0,0,w,h);
+    const ox = Math.round((w-size)/2), oy = 44, y = S.layer;
+    ctx.font = '10px ui-monospace,Consolas,monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    const every = cell >= 14 ? 1 : cell >= 8 ? 2 : 5;
+
+    for(let z=0; z<d; z++) for(let x=0; x<d; x++){
+      const px = ox + x*cell, py = oy + z*cell;
+      if(vox[ix(x,y,z)]){
+        ctx.fillStyle = '#78b94b'; ctx.fillRect(px,py,cell,cell);
+        if(S.grid){ ctx.strokeStyle = 'rgba(10,25,10,.5)'; ctx.lineWidth = 1; ctx.strokeRect(px+.5,py+.5,cell-1,cell-1); }
+      } else {
+        if(y > 0 && vox[ix(x,y-1,z)]){ ctx.fillStyle = 'rgba(227,180,90,.16)'; ctx.fillRect(px,py,cell,cell); }
+        if(S.empty){ ctx.strokeStyle = 'rgba(150,170,155,.14)'; ctx.lineWidth = 1; ctx.strokeRect(px+.5,py+.5,cell-1,cell-1); }
+      }
+    }
+    ctx.fillStyle = '#7d8d82';
+    for(let i=0; i<d; i++) if(i%every===0 || i===d-1){
+      ctx.fillText(String(i+1), ox+i*cell+cell/2, oy-14);
+      ctx.fillText(String(i+1), ox-16, oy+i*cell+cell/2);
+    }
+  }
+  /* ---------- LAYER 3D (new view): selected layer solid, others faded / hidden ---------- */
+  const cvS = $('cvS');
+  S.others = 'faded';
+  function renderSolo(){
+    const { ctx, w, h } = fit(cvS, 460);
+    ctx.clearRect(0,0,w,h);
+    const cyw=Math.cos(S.yaw), syw=Math.sin(S.yaw), cp=Math.cos(S.pitch), sp=Math.sin(S.pitch);
+    const rot = (x,y,z) => { const x1=x*cyw+z*syw, z1=-x*syw+z*cyw; return [x1, y*cp-z1*sp, y*sp+z1*cp]; };
+    const sc = S.px*S.zoom, ox = w/2, oy = h/2;
+    const fInfo = FACES.map(f => { const r = rot(f.n[0],f.n[1],f.n[2]); return { vis:r[2]>0.001, k:f.top?1:0.55+0.4*Math.max(0,r[2]) }; });
+
+    const list = [];
+    for(const it of items){
+      const sel = it.layer === S.layer;
+      if(!sel){
+        if(S.others === 'hidden') continue;
+        if(S.others === 'below' && it.layer > S.layer) continue;
+      }
+      const m = sel ? (it.m | 1) : it.m;   // a lone layer always shows its top
+      if(!m) continue;
+      list.push({ it, sel, m, d: rot(it.x,it.y,it.z)[2] });
+    }
+    list.sort((a,b) => a.d - b.d);
+
+    ctx.lineJoin = 'round';
+    for(const o of list){
+      const it = o.it, pal = o.sel ? GOLD : GREEN;
+      ctx.globalAlpha = o.sel ? 1 : 0.13;
+      for(let fi=0; fi<5; fi++){
+        const f = FACES[fi];
+        if(!(o.m & f.bit) || !fInfo[fi].vis) continue;
+        ctx.beginPath();
+        for(let i=0; i<4; i++){
+          const r = rot(it.x+f.v[i][0], it.y+f.v[i][1], it.z+f.v[i][2]);
+          const px = ox + r[0]*sc, py = oy - r[1]*sc;
+          i ? ctx.lineTo(px,py) : ctx.moveTo(px,py);
+        }
+        ctx.closePath();
+        const col = shade(f.top ? pal.top : pal.side, fInfo[fi].k);
+        ctx.fillStyle = col; ctx.fill();
+        if(S.grid){ ctx.strokeStyle = o.sel ? 'rgba(10,18,10,.45)' : 'rgba(150,200,120,.5)'; ctx.lineWidth = 1; }
+        else { ctx.strokeStyle = col; ctx.lineWidth = .6; }
+        ctx.stroke();
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+  const render = () => S.view === '3d' ? render3D() : S.view === 'layer' ? renderLayer() : renderSolo();
+
+  /* ---------- UI ---------- */
+  const setFill = el => el.style.setProperty('--p', ((el.value-el.min)/(el.max-el.min)*100)+'%');
+  const pl = (n,s) => `${n} ${s}${n===1?'':'s'}`;
+  function updateUI(){
+    const d = S.d, cnt = layerCounts[S.layer];
+    $('dLab').textContent = pl(d,'block'); $('tLab').textContent = pl(S.thick,'block'); $('pLab').textContent = S.px+' px';
+    $('dims').textContent = `${d} × ${d} × ${d} BLOCKS`;
+    $('st3').textContent = `${total} BLOCKS`;
+    $('thickField').classList.toggle('hidden', S.mode !== 'hollow');
+    const rr = $('rRange'); rr.max = d; rr.value = S.layer+1;
+    ['dRange','tRange','pRange','rRange'].forEach(id => setFill($(id)));
+    $('rCount').textContent = `${S.layer+1} / ${d}`;
+    $('rInfo').textContent = `Layer ${S.layer+1} · ${cnt} block${cnt===1?'':'s'} to place`;
+    $('sTotal').textContent = total; $('sLayer').textContent = cnt; $('sLayers').textContent = d;
+    $('stLl').textContent = `LAYER ${S.layer+1} OF ${d}`; $('stLr').textContent = `${cnt} BLOCKS`;
+    $('stSl').textContent = `LAYER ${S.layer+1} OF ${d}`; $('stSr').textContent = `${cnt} BLOCKS`;
+  }
+  function rebuild(){ buildSphere(); S.layer = clamp(S.layer,0,S.d-1); updateUI(); schedule(); }
+  const autoPx = () => { S.px = clamp(Math.round(300/S.d), 4, 30); $('pRange').value = S.px; };
+  function setDiameter(v, fromNum){
+    v = clamp(Math.round(+v)||3, 3, 41);
+    const mid = S.layer === Math.floor((S.d-1)/2);
+    S.d = v; $('dRange').value = v;
+    if(!fromNum) $('dNum').value = v;
+    autoPx();
+    S.layer = mid ? Math.floor((v-1)/2) : Math.min(S.layer, v-1);
+    rebuild();
+  }
+
+  $('dRange').addEventListener('input', e => setDiameter(e.target.value));
+  $('dNum').addEventListener('input', e => { if(e.target.value !== '') setDiameter(e.target.value, true); });
+  $('dNum').addEventListener('blur', () => { $('dNum').value = S.d; });
+  $('mode').addEventListener('change', e => { S.mode = e.target.value; rebuild(); });
+  $('tRange').addEventListener('input', e => { S.thick = +e.target.value; rebuild(); });
+  $('pRange').addEventListener('input', e => { S.px = +e.target.value; updateUI(); schedule(); });
+  $('optGrid').addEventListener('change', e => { S.grid = e.target.checked; schedule(); });
+  $('optEmpty').addEventListener('change', e => { S.empty = e.target.checked; schedule(); });
+  $('optAll').addEventListener('change', e => { S.all = e.target.checked; schedule(); });
+
+  const go = n => { S.layer = clamp(n,0,S.d-1); updateUI(); schedule(); };
+  $('rRange').addEventListener('input', e => go(+e.target.value-1));
+  $('rPrev').addEventListener('click', () => go(S.layer-1));
+  $('rNext').addEventListener('click', () => go(S.layer+1));
+  $('rMid').addEventListener('click', () => go(Math.floor((S.d-1)/2)));
+
+  function setView(v){
+    S.view = v;
+    $('tab3d').classList.toggle('on', v==='3d'); $('tabL').classList.toggle('on', v==='layer'); $('tabS').classList.toggle('on', v==='solo');
+    $('stage3d').classList.toggle('hidden', v!=='3d'); $('stageL').classList.toggle('hidden', v!=='layer'); $('stageS').classList.toggle('hidden', v!=='solo');
+    $('ctrl3d').classList.toggle('hidden', v!=='3d'); $('ctrlL').classList.toggle('hidden', v!=='layer'); $('ctrlS').classList.toggle('hidden', v!=='solo');
+    schedule();
+  }
+  $('tab3d').addEventListener('click', () => setView('3d'));
+  $('tabL').addEventListener('click', () => setView('layer'));
+  $('tabS').addEventListener('click', () => setView('solo'));
+
+  // Layer 3D controls (camera is shared with the main 3D view)
+  document.querySelectorAll('[data-oth]').forEach(b => b.addEventListener('click', () => {
+    S.others = b.dataset.oth;
+    document.querySelectorAll('[data-oth]').forEach(x => x.classList.toggle('on', x === b));
+    schedule();
+  }));
+  $('sRotL').addEventListener('click', () => { S.yaw -= Math.PI/12; schedule(); });
+  $('sRotR').addEventListener('click', () => { S.yaw += Math.PI/12; schedule(); });
+  $('sZIn').addEventListener('click', () => { S.zoom = clamp(S.zoom*1.2,.3,5); schedule(); });
+  $('sZOut').addEventListener('click', () => { S.zoom = clamp(S.zoom/1.2,.3,5); schedule(); });
+  $('sReset').addEventListener('click', () => { S.yaw = DEF.yaw; S.pitch = DEF.pitch; S.zoom = 1; schedule(); });
+  let dragS = null;
+  cvS.addEventListener('pointerdown', e => { dragS = {x:e.clientX,y:e.clientY}; cvS.setPointerCapture(e.pointerId); cvS.style.cursor = 'grabbing'; });
+  cvS.addEventListener('pointermove', e => {
+    if(!dragS) return;
+    S.yaw += (e.clientX-dragS.x)*0.01;
+    S.pitch = clamp(S.pitch + (e.clientY-dragS.y)*0.008, 0.12, 1.45);
+    dragS.x = e.clientX; dragS.y = e.clientY; schedule();
+  });
+  const endDragS = () => { dragS = null; cvS.style.cursor = 'grab'; };
+  cvS.addEventListener('pointerup', endDragS); cvS.addEventListener('pointercancel', endDragS);
+  cvS.addEventListener('wheel', e => { e.preventDefault(); S.zoom = clamp(S.zoom*(e.deltaY<0?1.1:1/1.1),.3,5); schedule(); }, {passive:false});
+
+  $('rotL').addEventListener('click', () => { S.yaw -= Math.PI/12; schedule(); });
+  $('rotR').addEventListener('click', () => { S.yaw += Math.PI/12; schedule(); });
+  $('zIn').addEventListener('click', () => { S.zoom = clamp(S.zoom*1.2,.3,5); schedule(); });
+  $('zOut').addEventListener('click', () => { S.zoom = clamp(S.zoom/1.2,.3,5); schedule(); });
+  $('vReset').addEventListener('click', () => { S.yaw = DEF.yaw; S.pitch = DEF.pitch; S.zoom = 1; schedule(); });
+
+  let drag = null;
+  cv3.addEventListener('pointerdown', e => { drag = {x:e.clientX,y:e.clientY}; cv3.setPointerCapture(e.pointerId); cv3.classList.add('drag'); });
+  cv3.addEventListener('pointermove', e => {
+    if(!drag) return;
+    S.yaw += (e.clientX-drag.x)*0.01;
+    S.pitch = clamp(S.pitch + (e.clientY-drag.y)*0.008, 0.12, 1.45);
+    drag.x = e.clientX; drag.y = e.clientY; schedule();
+  });
+  const endDrag = () => { drag = null; cv3.classList.remove('drag'); };
+  cv3.addEventListener('pointerup', endDrag); cv3.addEventListener('pointercancel', endDrag);
+  cv3.addEventListener('wheel', e => { e.preventDefault(); S.zoom = clamp(S.zoom*(e.deltaY<0?1.1:1/1.1),.3,5); schedule(); }, {passive:false});
+
+  window.addEventListener('keydown', e => {
+    const t = document.activeElement;
+    if(/INPUT|SELECT/.test(t.tagName) && t.type !== 'range') return;
+    if(e.key==='ArrowRight'||e.key==='ArrowUp') go(S.layer+1);
+    if(e.key==='ArrowLeft'||e.key==='ArrowDown') go(S.layer-1);
+  });
+
+  /* ---------- toast / copy ---------- */
+  let tt;
+  function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('on'); clearTimeout(tt); tt=setTimeout(()=>t.classList.remove('on'),1800); }
+  function copyText(txt){
+    const fb = () => { const a=document.createElement('textarea'); a.value=txt; a.style.position='fixed'; a.style.opacity='0'; document.body.appendChild(a); a.select(); try{document.execCommand('copy');toast('LAYER PLAN COPIED');}catch(e){toast('COPY FAILED');} a.remove(); };
+    if(navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(txt).then(()=>toast('LAYER PLAN COPIED'), fb); else fb();
+  }
+  function planText(){
+    const d = S.d;
+    let t = `BLOCKSMITH — SPHERE BLUEPRINT\nDiameter ${d} · ${S.mode==='solid'?'Solid':'Hollow shell, thickness '+S.thick} · ${total} blocks total\n\n# = block   . = empty   (build bottom to top; rows run front to back)\n`;
+    for(let y=0; y<d; y++){
+      t += `\nLayer ${y+1} (${layerCounts[y]} blocks)\n`;
+      for(let z=0; z<d; z++){
+        let row = []; for(let x=0; x<d; x++) row.push(vox[ix(x,y,z)] ? '#' : '.');
+        t += row.join(' ') + '\n';
+      }
+    }
+    return t;
+  }
+  $('bCopy').addEventListener('click', () => copyText(planText()));
+
+  $('bPng').addEventListener('click', () => {
+    const d = S.d, cs = clamp(Math.floor(180/d),3,14), tile = d*cs, pad = 16, head = 22;
+    const cols = Math.min(d, Math.max(1, Math.ceil(Math.sqrt(d*1.4)))), rows = Math.ceil(d/cols);
+    const W = cols*(tile+pad)+pad, H = rows*(tile+pad+head)+pad+40;
+    const c = document.createElement('canvas'); c.width = W; c.height = H;
+    const x = c.getContext('2d');
+    x.fillStyle = '#101614'; x.fillRect(0,0,W,H);
+    x.fillStyle = '#9ed46b'; x.font = 'bold 14px monospace'; x.textBaseline = 'top';
+    x.fillText(`BLOCKSMITH · SPHERE ${d} · ${total} BLOCKS · ${d} LAYERS`, pad, 14);
+    for(let y=0; y<d; y++){
+      const cx = pad + (y%cols)*(tile+pad), cy = 40 + pad + Math.floor(y/cols)*(tile+pad+head);
+      x.fillStyle = '#e3b45a'; x.font = '11px monospace';
+      x.fillText(`LAYER ${y+1} · ${layerCounts[y]}`, cx, cy-12);
+      x.fillStyle = '#1b2420'; x.fillRect(cx,cy,tile,tile);
+      for(let z=0; z<d; z++) for(let xx=0; xx<d; xx++){
+        if(!vox[ix(xx,y,z)]) continue;
+        x.fillStyle = '#78b94b'; x.fillRect(cx+xx*cs, cy+z*cs, cs, cs);
+        if(cs>=5){ x.strokeStyle='rgba(10,25,10,.5)'; x.strokeRect(cx+xx*cs+.5, cy+z*cs+.5, cs-1, cs-1); }
+      }
+    }
+    c.toBlob(b => {
+      const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `sphere_${d}_layers.png`;
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),2000); toast('PNG SHEET EXPORTED');
+    });
+  });
+
+  $('bReset').addEventListener('click', () => {
+    Object.assign(S, DEF);
+    $('dRange').value = S.d; $('dNum').value = S.d; $('mode').value = S.mode; $('tRange').value = S.thick; $('pRange').value = S.px;
+    $('optGrid').checked = S.grid; $('optEmpty').checked = S.empty; $('optAll').checked = S.all;
+    S.layer = Math.floor((S.d-1)/2);
+    rebuild(); toast('SETTINGS RESET');
+  });
+
+  new ResizeObserver(schedule).observe($('stage3d'));
+  window.addEventListener('resize', schedule);
+
+  S.layer = Math.floor((S.d-1)/2);
+  rebuild();
+})();
+</script>
+</body>
+</html>
