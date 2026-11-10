@@ -2,7 +2,7 @@
 
 Build a Minecraft sphere one horizontal layer at a time. Inspect every circular slice, orbit the 3D block model, and export a blueprint you can follow in-game.
 
-**Live demo:** https://YOUR-USERNAME.github.io/YOUR-REPO/
+**Live demo:** https://adityasinghrajput020410-collab.github.io/blocksmith-sphere-generator/
 
 ![Sphere Generator – 3D view](sphere-generator.png)
 
@@ -19,7 +19,7 @@ Build a Minecraft sphere one horizontal layer at a time. Inspect every circular 
 
 | 3D view | Layer view | Layer 3D |
 | --- | --- | --- |
-| ![3D view](screenshots/3d-view.png) | ![Layer view](screenshots/layer-view.png) | ![Layer 3D](screenshots/layer-3d.png) |
+| ![3D view](3d-view.png) | ![Layer view](layer-view.png) | ![Layer 3D](layer-3d.png) |
 
 ## Usage
 
