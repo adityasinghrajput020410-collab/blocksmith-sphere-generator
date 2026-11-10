@@ -4,7 +4,7 @@ Build a Minecraft sphere one horizontal layer at a time. Inspect every circular 
 
 **Live demo:** https://YOUR-USERNAME.github.io/YOUR-REPO/
 
-![Sphere Generator – 3D view](screenshots/3d-view.png)
+![Sphere Generator – 3D view](sphere-generator.png)
 
 ## Features
 
